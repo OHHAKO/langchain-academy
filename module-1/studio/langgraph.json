@@ -4,7 +4,8 @@
     "simple_graph": "./simple.py:graph",
     "router": "./router.py:graph",
     "agent": "./agent.py:graph",
-    "my_tools": "./my_tools.py:graph"
+    "my_tools": "./my_tools.py:graph",
+    "my_tool_agent": "./my_tool_agent.py:graph"
   },
   "env": "./.env",
   "python_version": "3.11",

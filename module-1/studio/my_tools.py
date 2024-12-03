@@ -1,7 +1,8 @@
-from typing import Literal
+from typing import Literal, Annotated
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import AIMessage, HumanMessage, AnyMessage
+from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
 
 # 도구 정의
@@ -17,7 +18,7 @@ llm_with_tools = llm.bind_tools([is_odd_number])
 
 # state 정의
 class MessageState(TypedDict):
-    messages: list[AnyMessage]
+    messages: Annotated[list[AnyMessage], add_messages]
 
 # node 정의
 def node_A(state):
