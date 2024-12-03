@@ -3,11 +3,10 @@
   "graphs": {
     "simple_graph": "./simple.py:graph",
     "router": "./router.py:graph",
-    "agent": "./agent.py:graph"
+    "agent": "./agent.py:graph",
+    "my_tools": "./my_tools.py:graph"
   },
   "env": "./.env",
   "python_version": "3.11",
-  "dependencies": [
-    "."
-  ]
+  "dependencies": ["."]
 }
