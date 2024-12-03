@@ -1,46 +1,58 @@
 from typing import Literal
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
+from langchain_core.messages import AIMessage, HumanMessage, AnyMessage
+from langchain_openai import ChatOpenAI
+
+# 도구 정의
+def is_odd_number(a: int) -> bool:
+    print('도구 호출: ', a)
+    return a % 2 == 1
+
+
+# LLM에게 도구 쥐어주기
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools([is_odd_number])
+
 
 # state 정의
-class State(TypedDict):
-    graph_state: str
+class MessageState(TypedDict):
+    messages: list[AnyMessage]
 
 # node 정의
 def node_A(state):
     print('--node A--')
-    return {"graph_state": state['graph_state']}
+    return {"messages": state['messages']}
 
 def node_B(state):
-    print('--node B--')
-    return {"graph_state": state['graph_state'] + " B!"}
+    print('--node B(SKIP)--')
+    return {"messages": state['messages'] + " B!"}
 
 def node_C(state):
-    print('--node C--')
-    return {"graph_state": state['graph_state'] + " C!"}
+    print('--node C. Agent와 대화 시작--')
+
+    return {"messages": [llm.invoke(state['messages'])]}
 
 
-def decide_next_A(state) -> Literal["node_B", "node_C"]:
-    user_message = state['graph_state']
+def decide_next_A(state) -> Literal["skip", "node_C"]:
+    user_message = state['messages']
     print('길이: ', len(user_message))
     if len(user_message)%2 == 0:
-        return "node_B"
+        return "skip"
     else:
         return "node_C"
 
-
 # graph 정의
-builder = StateGraph(State)
+builder = StateGraph(MessageState)
 builder.add_node("node_A", node_A)
-builder.add_node("node_B", node_B)
+builder.add_node("skip", node_B)
 builder.add_node("node_C", node_C)
 
 # node 연결
 builder.add_edge(START, "node_A")
 builder.add_conditional_edges("node_A", decide_next_A)
-builder.add_edge("node_B", END)
+builder.add_edge("skip", END)
 builder.add_edge("node_C", END)
 
 # graph 생성
 graph = builder.compile();
-graph.invoke({"graph_state":"IamHako"})
