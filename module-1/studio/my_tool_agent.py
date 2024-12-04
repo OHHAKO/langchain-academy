@@ -5,9 +5,15 @@ from langchain_core.messages import AIMessage, HumanMessage, AnyMessage
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
 from langgraph.graph import MessagesState
+from langgraph.prebuilt import ToolNode
 
 # 도구 정의
 def is_odd_number(a: int) -> bool:
+    """Returns True if a is odd, False otherwise.
+
+    Args:
+        a: int
+    """
     print('도구 호출: ', a)
     return a % 2 == 1
 
@@ -33,7 +39,8 @@ def tool_node(state):
 
 def tools_condition(state) -> Literal[END, 'tool']:
     # 도구를 사용했는지 유무 판단
-    tool_call = state['messages'][0].additional_kwargs.get('tool_calls')
+    last_message = state['messages'][-1]
+    tool_call = last_message.additional_kwargs.get('tool_calls')
     print('state: ', tool_call)
     
     if tool_call:
@@ -43,7 +50,7 @@ def tools_condition(state) -> Literal[END, 'tool']:
 # graph 정의
 builder = StateGraph(MessageState)
 builder.add_node("assistant", assistant_node)
-builder.add_node("tool", tool_node)
+builder.add_node("tool", ToolNode([is_odd_number]))
 
 # node 연결
 builder.add_edge(START, "assistant")
